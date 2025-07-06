@@ -2,6 +2,9 @@ import platform
 import subprocess
 import pyautogui
 import os
+import ctypes
+import winshell
+import psutil
 from datetime import datetime
 
 
@@ -31,12 +34,50 @@ class DextopAgent:
                     return f"{app_name} not found in available applications"
                 
             elif self.system == "Linux":
-                subprocess.Popen(app_name)
-                return f"Opening {app_name}"
+                app_mapping = {
+                    "chrome": "google-chrome",
+                    "firefox": "firefox",
+                    "terminal": "gnome-terminal",
+                    "calculator": "gnome-calculator",
+                    "files": "nautilus",
+                    "gedit": "gedit"
+                }
+                
+                app_name_lower = app_name.lower()
+                actual_app_name = app_mapping.get(app_name_lower, app_name)
+                
+                subprocess.Popen([actual_app_name])
+                return f"Opened {actual_app_name}"
             
-            elif self.system == "Darwin":
-                subprocess.Popen(app_name)
-                return f"Opening {app_name}"
+            if self.system == "Darwin":
+                app_mapping = {
+                    "chrome": "Google Chrome",
+                    "safari": "Safari",
+                    "firefox": "Firefox",
+                    "spotify": "Spotify",
+                    "terminal": "Terminal",
+                    "finder": "Finder",
+                    "mail": "Mail",
+                    "messages": "Messages",
+                    "facetime": "FaceTime",
+                    "photos": "Photos",
+                    "music": "Music",
+                    "calculator": "Calculator",
+                    "notes": "Notes",
+                    "calendar": "Calendar",
+                    "reminders": "Reminders",
+                    "maps": "Maps",
+                    "weather": "Weather",
+                    "clock": "Clock",
+                    "settings": "System Preferences",
+                    "preferences": "System Preferences"
+                }
+                
+                app_name_lower = app_name.lower()
+                actual_app_name = app_mapping.get(app_name_lower, app_name)
+                
+                subprocess.run(["open", "-a", actual_app_name])
+                return f"Opened {actual_app_name}"
 
         except Exception as e:
             return f"Error: {str(e)}"
@@ -103,5 +144,43 @@ class DextopAgent:
             return "Window closed"
         except Exception as e:
             return f"Error: {str(e)}"
-        
+    
+    def lock_computer(self):
+        try:
+            if self.system == "Windows":
+                ctypes.windll.user32.LockWorkStation()
+            elif self.system == "Linux":
+                subprocess.run(["gnome-screensaver-command", "-l"])
+            elif self.system == "Darwin":
+                subprocess.run(["pmset", "displaysleepnow"])
+            return "Computer locked"
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+
+    def get_system_info(self):
+        try:
+            info = {
+                "OS": platform.system(),
+                "OS Version": platform.version(),
+                "Processor": platform.processor(),
+                "CPU Cores": psutil.cpu_count(logical=False),
+                "RAM": f"{round(psutil.virtual_memory().total / (1024**3), 2)} GB"
+            }
+            return "\n".join(f"{k}: {v}" for k, v in info.items())
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+    def get_running_apps(self):
+        try:
+            running_apps = []
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    running_apps.append(proc.info['name'])
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
             
+            unique_apps = list(set(running_apps))[:10]
+            return f"Running apps: {', '.join(unique_apps)}"
+        except Exception as e:
+            return f"Could not get running apps: {str(e)}"

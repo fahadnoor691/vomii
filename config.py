@@ -14,11 +14,12 @@ RECOGNITION_SETTINGS = {
     'operation_timeout': None
 }
 
-# ElevenLabs Configuration
-ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
-ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"
-ELEVENLABS_OUTPUT_FORMAT = "mp3_44100_128"
+OPENAI_SETTINGS = {
+    'model': 'deepseek/deepseek-chat-v3-0324:free',
+    'temperature': 0.5,
+}
 
-# FFmpeg Configuration
-FFMPEG_PATH = os.path.join(os.path.dirname(__file__), "ffmpeg", "bin")
-os.environ["PATH"] += os.pathsep + FFMPEG_PATH
+# Edge TTS Configuration
+EDGE_TTS_VOICE = "en-US-AriaNeural"  # Default voice
+EDGE_TTS_RATE = "+0%"  # Speech rate (can be +10%, -10%, etc.)
+EDGE_TTS_VOLUME = "+0%"  # Volume (can be +10%, -10%, etc.)

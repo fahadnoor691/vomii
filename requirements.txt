@@ -7,4 +7,6 @@ openai==1.93.0
 elevenlabs==2.5.0
 PyAutoGUI==0.9.54
 pillow==11.2.1
-tavily==0.7.8
+# tavily==0.7.8
+pygame>=2.6.1
+edge-tts>=7.0.2

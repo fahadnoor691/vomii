@@ -2,6 +2,7 @@ from config import OPENAI_API_KEY
 from prompts import SYSTEM_PROMPT, REFINEMENT_PROMPT, REFINEMENT_SYSTEM_PROMPT
 from tools import FUNCTIONS, FUNCTIONS_MAP
 from speech_handler import SpeechHandler
+from conversation_handler import ConversationHandler
 
 import openai
 import json
@@ -10,24 +11,36 @@ class AIHandler:
     def __init__(self):
         self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
         self.speech_handler = SpeechHandler()
+        self.conversation_handler = ConversationHandler()
 
     def process_query(self, query):
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        conversation_history = self.conversation_handler.get_conversation_history()
+        messages.extend(conversation_history)
         messages.append({"role": "user", "content": query})
+        
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
             functions=FUNCTIONS,
             function_call="auto",
         )
+        
+        self.conversation_handler.add_message(query, "user")
+        
         choice = response.choices[0]
+        
         if choice.message.function_call:
             self.speech_handler.speak("Hold on a second...")
             function_call = choice.message.function_call
             result = self.execute_function(function_call)
             refined_response = self.refine_response(query, result)
-            return refined_response
-        return choice.message.content
+            final_response = refined_response + "\n\n" + result
+        else:
+            final_response = choice.message.content
+        
+        self.conversation_handler.add_message(final_response, "assistant")
+        return final_response
 
     def execute_function(self, function_call):
         try:
@@ -57,13 +70,16 @@ class AIHandler:
 
     def refine_response(self, user_query, response):
         refinement_prompt = REFINEMENT_PROMPT.format(user_query=user_query, response=response)
+        
         messages = [
             {"role": "system", "content": REFINEMENT_SYSTEM_PROMPT},
             {"role": "user", "content": refinement_prompt}
         ]
+        
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
             max_tokens=1000
         )
+        
         return response.choices[0].message.content
