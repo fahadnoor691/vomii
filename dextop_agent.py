@@ -3,7 +3,6 @@ import subprocess
 import pyautogui
 import os
 import ctypes
-import winshell
 import psutil
 from datetime import datetime
 
@@ -27,12 +26,9 @@ class DextopAgent:
                 app_name_lower = app_name.lower()
                 actual_app_name = available_apps.get(app_name_lower)
 
-                if actual_app_name:
-                    subprocess.Popen(actual_app_name)
-                    return f"Opening {app_name}"
-                else:
-                    return f"{app_name} not found in available applications"
-                
+                subprocess.Popen(actual_app_name)
+                return f"Opening {app_name}"
+
             elif self.system == "Linux":
                 app_mapping = {
                     "chrome": "google-chrome",
@@ -80,18 +76,18 @@ class DextopAgent:
                 return f"Opened {actual_app_name}"
 
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Cannot open {app_name}"
 
-    def take_screenshot(self):
+    def take_screenshot(self, filename=None):
         try:
             screenshot = pyautogui.screenshot()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            screenshot_dir = os.path.join(os.getcwd(), "screenshots")
+            
+            screenshot_dir = os.getcwd()
 
-            if not os.path.exists(screenshot_dir):
-                os.makedirs(screenshot_dir)
+            filename = f"{filename}.png" if filename else f"screenshot_{timestamp}.png"
 
-            save_path = os.path.join(screenshot_dir, f"screenshot_{timestamp}.png")
+            save_path = os.path.join(screenshot_dir, filename)
             screenshot.save(save_path)
 
             if self.system == "Windows":
@@ -101,9 +97,9 @@ class DextopAgent:
             elif self.system == "Darwin":
                 subprocess.run(["open", save_path])
 
-            return f"Screenshot taken and saved in screenshots folder"
+            return f"Screenshot taken and saved as {filename}"
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Could not take screenshot: {str(e)}"
 
     def minimize_windows(self):
         try:
@@ -116,7 +112,7 @@ class DextopAgent:
 
             return "Window minimized"
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Could not minimize window: {str(e)}"
     
     def restore_windows(self):
         try:
@@ -129,7 +125,7 @@ class DextopAgent:
 
             return "Window restored"
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Could not restore window: {str(e)}"
 
 
     def close_windows(self):
@@ -143,7 +139,7 @@ class DextopAgent:
 
             return "Window closed"
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Could not close window: {str(e)}"
     
     def lock_computer(self):
         try:
@@ -155,7 +151,7 @@ class DextopAgent:
                 subprocess.run(["pmset", "displaysleepnow"])
             return "Computer locked"
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Could not lock computer: {str(e)}"
     
 
     def get_system_info(self):
@@ -163,13 +159,24 @@ class DextopAgent:
             info = {
                 "OS": platform.system(),
                 "OS Version": platform.version(),
+                "Node": platform.node(),
                 "Processor": platform.processor(),
                 "CPU Cores": psutil.cpu_count(logical=False),
-                "RAM": f"{round(psutil.virtual_memory().total / (1024**3), 2)} GB"
+                "RAM": f"{round(psutil.virtual_memory().total / (1024**3), 2)} GB",
+                "Disk Space": f"{round(psutil.disk_usage('/').total / (1024**3), 2)} GB"
             }
             return "\n".join(f"{k}: {v}" for k, v in info.items())
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Could not get system info: {str(e)}"
+    
+    def get_system_battery(self):
+        try:
+            battery = psutil.sensors_battery()
+            if battery is None:
+                return "No battery detected (desktop computer or battery not available)"
+            return f"Battery: {battery.percent}%"
+        except Exception as e:
+            return f"Could not get system battery: {str(e)}"
     
     def get_running_apps(self):
         try:

@@ -1,5 +1,6 @@
 from vomi import Vomi
 
+
 def main():
     try:
         vomi = Vomi()

@@ -1,24 +1,18 @@
-from dataclasses import dataclass
-from typing import List
-from datetime import datetime
+import time
+from config import CONTEXT_SETTINGS
 
-@dataclass
-class Message:
-    content: str
-    role: str
-    timestamp: datetime
 
 class ConversationHandler:
     def __init__(self):
-        self.conversation_history: List[Message] = []
-        self.max_history: int = 100
+        self.conversation_history = []
+        self.max_history = CONTEXT_SETTINGS['max_history']
     
-    def add_message(self, content: str, role: str) -> Message:
-        message = Message(
-            content=content,
-            role=role,
-            timestamp=datetime.now()
-        )
+    def add_message(self, content: str, role: str) -> None:
+        message = {
+            "content": content,
+            "role": role,
+            "timestamp": time.time()
+        }
         self.conversation_history.append(message)
         
         if len(self.conversation_history) > self.max_history:
@@ -26,7 +20,7 @@ class ConversationHandler:
         
         return message
     
-    def get_conversation_history(self) -> List[Message]:
+    def get_conversation_history(self):
         return self.conversation_history
     
     def clear_history(self) -> None:

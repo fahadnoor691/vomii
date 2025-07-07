@@ -1,17 +1,21 @@
-from config import OPENAI_API_KEY
+from config import OPENAI_API_KEY, OPENAI_SETTINGS
 from prompts import SYSTEM_PROMPT, REFINEMENT_PROMPT, REFINEMENT_SYSTEM_PROMPT
-from tools import FUNCTIONS, FUNCTIONS_MAP
+from tools import TOOLS, TOOLS_MAP
 from speech_handler import SpeechHandler
 from conversation_handler import ConversationHandler
 
 import openai
 import json
 
+
 class AIHandler:
     def __init__(self):
         self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
         self.speech_handler = SpeechHandler()
         self.conversation_handler = ConversationHandler()
+        
+        self.model = OPENAI_SETTINGS['model']
+        self.temperature = OPENAI_SETTINGS['temperature']
 
     def process_query(self, query):
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -20,40 +24,45 @@ class AIHandler:
         messages.append({"role": "user", "content": query})
         
         response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=self.model,
             messages=messages,
-            functions=FUNCTIONS,
-            function_call="auto",
+            tools=TOOLS,
+            tool_choice="auto",
+            temperature=self.temperature
         )
         
         self.conversation_handler.add_message(query, "user")
         
         choice = response.choices[0]
+        print(choice)
         
-        if choice.message.function_call:
+        if choice.message.tool_calls:
             self.speech_handler.speak("Hold on a second...")
-            function_call = choice.message.function_call
-            result = self.execute_function(function_call)
+            tool_call = choice.message.tool_calls[0]
+            result = self.execute_tool(tool_call)
             refined_response = self.refine_response(query, result)
-            final_response = refined_response + "\n\n" + result
+            final_response = refined_response
         else:
             final_response = choice.message.content
         
         self.conversation_handler.add_message(final_response, "assistant")
         return final_response
 
-    def execute_function(self, function_call):
+    def execute_tool(self, tool_call):
         try:
-            function_name = function_call.name
-            function_args = json.loads(function_call.arguments)
+            if not tool_call.type == "function":
+                return "Sorry, only functions are supported at the moment"
+            
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
             
             print("Executing function: ", function_name)
             print("Function arguments: ", function_args)
             
-            if function_name not in FUNCTIONS_MAP:
-                raise ValueError(f"Function '{function_name}' not found in FUNCTIONS_MAP")
+            if function_name not in TOOLS_MAP:
+                raise ValueError(f"Function '{function_name}' not found in TOOLS_MAP")
             
-            function = FUNCTIONS_MAP[function_name]
+            function = TOOLS_MAP[function_name]
             result = function(**function_args)
             print("Function result: ", result)
             return result
@@ -77,7 +86,7 @@ class AIHandler:
         ]
         
         response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=self.model,
             messages=messages,
             max_tokens=1000
         )

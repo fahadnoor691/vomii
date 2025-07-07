@@ -12,7 +12,7 @@ Tool result: "{response}"
 
 Please provide a refined, concise, and natural response based on the tool result. 
 Make it sound like a helpful assistant speaking to the user.
-Keep it as short as possible. between 40 and 50 words.
+Keep it as short as possible. between 10 and 20 words.
 Do not include any other text or explanations.
 """
 
