@@ -10,11 +10,13 @@ class Vomi:
         self.ai_handler = AIHandler()
 
     def start(self):
-        self.is_running = True
         username = getpass.getuser()
         print(f"Username: {username}")
+        
+        self.is_running = True
         self.speech_handler.speak(f"Hi {username}, how can I help you today?")
         self.speech_handler.calibrate_microphone()
+        
         while self.is_running:
             self._main_loop()
     

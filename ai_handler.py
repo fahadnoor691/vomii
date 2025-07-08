@@ -34,7 +34,6 @@ class AIHandler:
         self.conversation_handler.add_message(query, "user")
         
         choice = response.choices[0]
-        print(choice)
         
         if choice.message.tool_calls:
             self.speech_handler.speak("Hold on a second...")

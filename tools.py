@@ -33,6 +33,8 @@ def search_internet(query):
         query=query
     )
     content = []
+    
+    # Get top 2 results
     for result in search_result['results'][:2]:
         content.append(result['content'])
     return content
@@ -68,6 +70,8 @@ def get_running_apps():
 def get_system_battery():
     return dextop_agent.get_system_battery()
 
+def get_ip_address():
+    return dextop_agent.get_ip_address()
 
 TOOLS = [
     {
@@ -195,6 +199,14 @@ TOOLS = [
             "description": "Get the system battery",
             "parameters": {}
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_ip_address",
+            "description": "Get the IP address",
+            "parameters": {}
+        }
     }
 ]
 
@@ -212,5 +224,6 @@ TOOLS_MAP = {
     "lock_computer": lock_computer,
     "get_system_info": get_system_info,
     "get_running_apps": get_running_apps,
-    "get_system_battery": get_system_battery
+    "get_system_battery": get_system_battery,
+    "get_ip_address": get_ip_address
 }

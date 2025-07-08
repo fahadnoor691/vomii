@@ -4,6 +4,7 @@ import pyautogui
 import os
 import ctypes
 import psutil
+import socket
 from datetime import datetime
 
 
@@ -127,7 +128,6 @@ class DextopAgent:
         except Exception as e:
             return f"Could not restore window: {str(e)}"
 
-
     def close_windows(self):
         try:
             if self.system == "Windows":
@@ -152,7 +152,6 @@ class DextopAgent:
             return "Computer locked"
         except Exception as e:
             return f"Could not lock computer: {str(e)}"
-    
 
     def get_system_info(self):
         try:
@@ -191,3 +190,12 @@ class DextopAgent:
             return f"Running apps: {', '.join(unique_apps)}"
         except Exception as e:
             return f"Could not get running apps: {str(e)}"
+    
+    def get_ip_address(self):
+        try:
+            hostname = socket.gethostname()
+            ip_address = socket.gethostbyname(hostname)
+
+            return f"IP Address: {ip_address}"
+        except Exception as e:
+            return f"Could not get IP address: {str(e)}"
