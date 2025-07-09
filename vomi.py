@@ -31,7 +31,6 @@ class Vomi:
         
             if query.lower() in ["exit", "quit", "stop", "bye"]:
                 self.is_running = False
-                self.speech_handler.stop()
                 print("Exiting...")
                 self.speech_handler.speak("Thank you for using Vomi. Goodbye!")
                 break

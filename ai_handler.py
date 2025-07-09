@@ -36,7 +36,6 @@ class AIHandler:
         choice = response.choices[0]
         
         if choice.message.tool_calls:
-            self.speech_handler.speak("Hold on a second...")
             tool_call = choice.message.tool_calls[0]
             result = self.execute_tool(tool_call)
             refined_response = self.refine_response(query, result)

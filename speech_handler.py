@@ -1,7 +1,8 @@
 import speech_recognition as sr
 import pyttsx3
-
-from config import RECOGNITION_SETTINGS
+from elevenlabs.client import ElevenLabs
+from elevenlabs import play
+from config import RECOGNITION_SETTINGS, ELEVENLABS_SETTINGS, ELEVENLABS_API_KEY
 
 
 class SpeechHandler:
@@ -9,7 +10,8 @@ class SpeechHandler:
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         self.engine = pyttsx3.init()
-        
+        self.elevenlabs = ElevenLabs(api_key=ELEVENLABS_API_KEY)
+
         self.recognizer.energy_threshold = RECOGNITION_SETTINGS['energy_threshold']
         self.recognizer.dynamic_energy_threshold = RECOGNITION_SETTINGS['dynamic_energy_threshold']
         self.recognizer.pause_threshold = RECOGNITION_SETTINGS['pause_threshold']
@@ -40,8 +42,12 @@ class SpeechHandler:
                 return None
     
     def speak(self, text):
-        self.engine.say(text)
-        self.engine.runAndWait()
+        audio = self.elevenlabs.text_to_speech.convert(
+            text=text,
+            voice_id=ELEVENLABS_SETTINGS['voice_id'],
+            model_id=ELEVENLABS_SETTINGS['model_id'],
+            output_format=ELEVENLABS_SETTINGS['output_format'],
+            optimize_streaming_latency=ELEVENLABS_SETTINGS['optimize_streaming_latency'],
+        )
+        play(audio)
     
-    def stop(self):
-        self.engine.stop()
